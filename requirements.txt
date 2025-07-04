@@ -1,4 +1,5 @@
-pandas
-matplotlib
 streamlit
+pandas
+numpy
+matplotlib
 regex

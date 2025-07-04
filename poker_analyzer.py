@@ -2,7 +2,7 @@ import re
 import csv
 import pandas as pd
 import matplotlib.pyplot as plt
-import streamlit as st
+import streamlit as st  # УДАЛИТЬ ЭТУ СТРОКУ
 from collections import defaultdict
 from io import StringIO
 import os
@@ -347,95 +347,6 @@ class PokerVisualizer:
             writer.writerow(row)
         
         return output.getvalue()
-
-def main():
-    st.set_page_config(
-        page_title="Poker Hand Analyzer",
-        page_icon="♠️",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
-    
-    st.title("♠️ Poker Hand Analyzer")
-    st.markdown("""
-    ### MTT Poker Hand Analysis Tool
-    Upload your hand history files to analyze your poker performance
-    """)
-    
-    # File uploader
-    uploaded_files = st.file_uploader(
-        "Upload Poker Hand History Files", 
-        type="txt", 
-        accept_multiple_files=True
-    )
-    
-    if uploaded_files:
-        all_hands = []
-        file_count = 0
-        hand_count = 0
         
-        for uploaded_file in uploaded_files:
-            try:
-                content = uploaded_file.read().decode("utf-8")
-                parser = PokerHandParser()
-                parser.parse_file(content)
-                all_hands.extend(parser.hands)
-                file_count += 1
-                hand_count += len(parser.hands)
-            except Exception as e:
-                st.error(f"Error processing {uploaded_file.name}: {str(e)}")
-        
-        if all_hands:
-            st.success(f"Processed {file_count} files with {hand_count} hands")
-            
-            # Calculate stats
-            calculator = PokerStatsCalculator(all_hands)
-            stats = calculator.calculate_stats()
-            visualizer = PokerVisualizer(stats)
-            
-            # Overall stats
-            st.header("📊 Overall Statistics")
-            overall = stats['overall']
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Total Hands", overall['hands'])
-                st.metric("VPIP", f"{overall['vpip']:.2f}%")
-                st.metric("PFR", f"{overall['pfr']:.2f}%")
-                
-            with col2:
-                st.metric("Win Rate", f"{overall['win_rate']:.2f}%")
-                st.metric("3-Bet", f"{overall['3bet']:.2f}%")
-                st.metric("Aggression Factor", f"{overall['aggression_factor']:.2f}")
-                
-            with col3:
-                st.metric("Fold to CBet", f"{overall['fold_cbet_flop']:.2f}%")
-                st.metric("EV BB/100", f"{overall['ev_bb_100']:.2f}")
-                st.metric("Total Profit", f"{overall['total_profit']:,}")
-            
-            # Positional stats
-            st.header("🧭 Positional Statistics")
-            position_df = pd.DataFrame.from_dict(stats, orient='index')
-            position_df = position_df[position_df.index != 'overall']
-            st.dataframe(position_df)
-            
-            # Visualizations
-            st.header("📈 Performance Visualizations")
-            win_fig = visualizer.plot_win_types()
-            st.pyplot(win_fig)
-            
-            # Export
-            st.header("💾 Export Results")
-            csv_data = visualizer.export_to_csv()
-            
-            st.download_button(
-                label="📥 Download CSV Report",
-                data=csv_data,
-                file_name="poker_stats.csv",
-                mime="text/csv"
-            )
-        else:
-            st.warning("No valid hands found in the uploaded files")
-
 if __name__ == "__main__":
     main()
